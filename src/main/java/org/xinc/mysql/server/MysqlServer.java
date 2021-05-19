@@ -25,6 +25,11 @@ public class MysqlServer {
 
     MysqlServerProperty property = null;
 
+    public MysqlServer(MysqlServerProperty mysqlServerProperty) {
+        property = mysqlServerProperty;
+        start(property);
+    }
+
     public void start(MysqlServerProperty mysqlServerProperty) {
         property = mysqlServerProperty;
         try {

@@ -2,27 +2,46 @@ package org.xinc.mysql.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.pool2.KeyedObjectPool;
+import org.apache.commons.pool2.impl.GenericKeyedObjectPool;
+import org.xinc.mysql.MysqlUpstreamPool;
+import org.xinc.mysql.client.MysqlClient;
 import org.xinc.mysql.codec.*;
 import org.xinc.mysql.inception.MysqlInception;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Slf4j
 class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
+
     private byte[] salt = new byte[20];
+
+    KeyedObjectPool<Map<String, Object>, MysqlClient> upstreamPool = new GenericKeyedObjectPool<>(new MysqlUpstreamPool());
+
+    HashMap<String, Object> config = new HashMap<>();
 
     public Mysql57ServerHandler() {
         new Random().nextBytes(salt);
     }
 
     @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        log.info("客户端已经离线 返还 redis 句柄");
+        MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
+        upstreamPool.returnObject(config, mysqlClient);
+    }
+
+    @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        log.info("客户端已经上线 获取redis 句柄");
+        config.put("downStream",ctx.channel());
+        MysqlClient mysqlClient = upstreamPool.borrowObject(config);
+        ctx.channel().attr(AttributeKey.valueOf("redis_connect")).set(mysqlClient);
+
         log.info("返回服务器的版本和服务器的能力");
         final EnumSet<CapabilityFlags> capabilities = CapabilityFlags.getImplicitCapabilities();
         CapabilityFlags.setCapabilitiexinctr(ctx.channel(), capabilities);
@@ -34,11 +53,6 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
                 .characterSet(MysqlCharacterSet.UTF8_BIN)
                 .addCapabilities(capabilities)
                 .build());
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("客户端已经离线");
     }
 
     @Override

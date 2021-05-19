@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.xinc.mysql.codec.*;
+import org.xinc.mysql.server.MysqlServerProperty;
 
 import java.sql.SQLException;
 import java.util.EnumSet;
@@ -18,6 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MysqlClient {
 
     protected static final EnumSet<CapabilityFlags> CLIENT_CAPABILITIES = CapabilityFlags.getImplicitCapabilities();
+
     static {
         CLIENT_CAPABILITIES.addAll(EnumSet.of(CapabilityFlags.CLIENT_PLUGIN_AUTH, CapabilityFlags.CLIENT_SECURE_CONNECTION, CapabilityFlags.CLIENT_CONNECT_WITH_DB));
     }
@@ -25,14 +27,21 @@ public class MysqlClient {
     private EventLoopGroup eventLoopGroup;
     private Bootstrap bootstrap;
 
-    public static void main(String[] argv) throws ClassNotFoundException, SQLException {
-        var client=new MysqlClient();
-        client.start();
-    }
+    MysqlClientProperty property = null;
 
     private final BlockingQueue<MysqlServerPacket> serverPackets = new LinkedBlockingQueue<MysqlServerPacket>();
 
-    public void start(){
+    Channel downstream;
+
+    public MysqlClient(MysqlClientProperty mysqlClientProperty, Channel downStream) {
+        downstream = downStream;
+        property = mysqlClientProperty;
+        start(mysqlClientProperty, downStream);
+    }
+
+    public void start(MysqlClientProperty mysqlClientProperty, Channel channel) {
+        downstream = channel;
+        property = mysqlClientProperty;
         eventLoopGroup = new NioEventLoopGroup();
         bootstrap = new Bootstrap();
         bootstrap.group(eventLoopGroup);
@@ -46,10 +55,10 @@ public class MysqlClient {
                 ch.pipeline().addLast(new MysqlClientPacketEncoder());
             }
         });
-        var cf=bootstrap.connect("127.0.0.1",13306);
+        var cf = bootstrap.connect(property.server, property.port);
 
-        cf.addListener((ChannelFutureListener) future->{
-            if(future.isSuccess()){
+        cf.addListener((ChannelFutureListener) future -> {
+            if (future.isSuccess()) {
                 future.channel().pipeline().addLast(new ChannelInboundHandlerAdapter() {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
