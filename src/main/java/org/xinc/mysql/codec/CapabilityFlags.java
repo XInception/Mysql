@@ -68,7 +68,8 @@ public enum CapabilityFlags {
 				CapabilityFlags.CLIENT_LONG_PASSWORD,
 				CapabilityFlags.CLIENT_PROTOCOL_41,
 				CapabilityFlags.CLIENT_TRANSACTIONS,
-				CapabilityFlags.CLIENT_SECURE_CONNECTION
+				CapabilityFlags.CLIENT_SECURE_CONNECTION,
+				CapabilityFlags.CLIENT_SESSION_TRACK
 		);
 
 	}

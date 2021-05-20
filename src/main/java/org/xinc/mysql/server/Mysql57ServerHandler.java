@@ -30,17 +30,17 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        log.info("客户端已经离线 返还 redis 句柄");
-        MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
-        upstreamPool.returnObject(config, mysqlClient);
+//        log.info("客户端已经离线 返还 mysql 句柄");
+//        MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
+//        upstreamPool.returnObject(config, mysqlClient);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        log.info("客户端已经上线 获取redis 句柄");
-        config.put("downStream",ctx.channel());
-        MysqlClient mysqlClient = upstreamPool.borrowObject(config);
-        ctx.channel().attr(AttributeKey.valueOf("redis_connect")).set(mysqlClient);
+//        log.info("客户端已经上线 获取mysql 句柄");
+//        config.put("downStream",ctx.channel());
+//        MysqlClient mysqlClient = upstreamPool.borrowObject(config);
+//        ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).set(mysqlClient);
 
         log.info("返回服务器的版本和服务器的能力");
         final EnumSet<CapabilityFlags> capabilities = CapabilityFlags.getImplicitCapabilities();
@@ -57,11 +57,21 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+
         if (msg instanceof HandshakeResponse) {
+            System.out.println("处理握手");
             handleHandshakeResponse(ctx, (HandshakeResponse) msg);
         } else if (msg instanceof QueryCommand) {
-            handleQuery(ctx, (QueryCommand) msg);
+
+            try {
+                handleQuery(ctx, (QueryCommand) msg);
+            }catch (Exception e){
+                System.out.println("处理查询发生异常");
+                e.printStackTrace();
+            }
+
         } else if (msg instanceof CommandPacket) {
+            System.out.println("处理命令");
             handleCommond(ctx, (CommandPacket) msg);
         } else {
             System.out.println("收到消息" + msg);
@@ -70,15 +80,32 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        log.info("发生异常");
         cause.printStackTrace();
         ctx.close();
     }
 
     private void handleCommond(ChannelHandlerContext ctx, CommandPacket cmd) {
-        ctx.writeAndFlush(OkResponse.builder()
-                .sequenceId(cmd.getSequenceId() + 1)
-                .info("ok")
-                .addStatusFlags(ServerStatusFlag.AUTO_COMMIT).build());
+
+        System.out.println(cmd.getCommand());
+        if(cmd.getCommand()==Command.COM_INIT_DB){
+            ctx.writeAndFlush(OkResponse.builder()
+                    .sequenceId(cmd.getSequenceId() + 1)
+                    .info("ok")
+                    .sessionStateChanges("ok")
+                    .addStatusFlags(
+                            ServerStatusFlag.AUTO_COMMIT,
+                            ServerStatusFlag.SESSION_STATE_CHANGED)
+                    .build());
+        }else{
+            ctx.writeAndFlush(OkResponse.builder()
+                    .sequenceId(cmd.getSequenceId() + 1)
+                    .info("ok")
+                    .sessionStateChanges("ok")
+                    .addStatusFlags(
+                            ServerStatusFlag.AUTO_COMMIT).build());
+        }
+
     }
 
     private void handleHandshakeResponse(ChannelHandlerContext ctx, HandshakeResponse response) {
@@ -89,7 +116,15 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
         //挑战随机数 界面对比
         ctx.pipeline().replace(MysqlClientPacketDecoder.class, "CommandPacketDecoder", new MysqlClientCommandPacketDecoder());
         log.info("发送确认包");
-        ctx.writeAndFlush(OkResponse.builder().sequenceId(response.getSequenceId() + 1).addStatusFlags(ServerStatusFlag.AUTO_COMMIT).build());
+        ctx.writeAndFlush(OkResponse.builder()
+                .sequenceId(response.getSequenceId() + 1)
+                .addStatusFlags(
+                        ServerStatusFlag.AUTO_COMMIT,
+                        ServerStatusFlag.SESSION_STATE_CHANGED
+                )
+                .sessionStateChanges("ok111111111111111")
+                .info("ok")
+                .build());
     }
 
     private void handleQuery(ChannelHandlerContext ctx, QueryCommand query) {

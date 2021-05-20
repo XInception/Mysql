@@ -22,6 +22,7 @@ import io.netty.channel.ChannelHandlerContext;
 
 import java.nio.charset.Charset;
 import java.util.EnumSet;
+import java.util.logging.ConsoleHandler;
 
 /**
  *
@@ -41,7 +42,7 @@ public class MysqlServerPacketEncoder extends AbstractPacketEncoder<MysqlServerP
 		} else if (packet instanceof Handshake) {
 			encodeHandshake((Handshake)packet, buf);
 		} else if (packet instanceof OkResponse) {
-			System.out.print("编码");
+			System.out.print("编码"+serverCharset);
 			encodeOkResponse(capabilities, serverCharset, (OkResponse) packet, buf);
 		} else if (packet instanceof ResultsetRow) {
 			encodeResultsetRow(serverCharset, (ResultsetRow) packet, buf);
@@ -123,8 +124,10 @@ public class MysqlServerPacketEncoder extends AbstractPacketEncoder<MysqlServerP
 			buf.writeShortLE((int)CodecUtils.toLong(response.getStatusFlags()));
 		}
 		if (capabilities.contains(CapabilityFlags.CLIENT_SESSION_TRACK)) {
+			System.out.println("session跟踪");
 			CodecUtils.writeLengthEncodedString(buf, response.getInfo(), serverCharset);
 			if (response.getStatusFlags().contains(ServerStatusFlag.SESSION_STATE_CHANGED)) {
+				System.out.println("session状态变化");
 				CodecUtils.writeLengthEncodedString(buf, response.getSessionStateChanges(), serverCharset);
 			}
 		} else {

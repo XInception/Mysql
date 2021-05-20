@@ -72,7 +72,7 @@ public class MysqlClient {
                             final HandshakeResponse response = HandshakeResponse
                                     .create()
                                     .addCapabilities(CLIENT_CAPABILITIES)
-                                    .username(property.user )
+                                    .username(property.user)
                                     .addAuthData(MysqlNativePasswordUtil.hashPassword(property.password, ((Handshake)msg).getAuthPluginData()))
                                     .database("test")
                                     .authPluginName(Constants.MYSQL_NATIVE_PASSWORD)

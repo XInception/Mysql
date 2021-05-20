@@ -188,11 +188,16 @@ final class CodecUtils {
 
 	static void writeLengthEncodedString(ByteBuf buf, CharSequence sequence, Charset charset) {
 		final ByteBuf tmpBuf = Unpooled.buffer();
+		System.out.println(sequence);
 		try {
 			tmpBuf.writeCharSequence(sequence, charset);
 			writeLengthEncodedInt(buf, (long) tmpBuf.readableBytes());
 			buf.writeBytes(tmpBuf);
-		} finally {
+		}catch (Exception e){
+
+			e.printStackTrace();
+		}
+		finally {
 			tmpBuf.release();
 		}
 	}
