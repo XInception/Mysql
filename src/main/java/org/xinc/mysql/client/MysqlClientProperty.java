@@ -11,6 +11,9 @@ public class MysqlClientProperty {
 
     String server;
     Integer port;
+    String user;
+    String password;
+    String database;
 
     public MysqlClientProperty(String s) throws IOException {
         this.loadProperty(s);
@@ -21,6 +24,9 @@ public class MysqlClientProperty {
         properties.load(stream);
         this.server=properties.getProperty("app.api.server");
         this.port=Integer.parseInt(properties.getProperty("app.api.port"));
+        this.user=properties.getProperty("app.api.user");
+        this.password=properties.getProperty("app.api.password");
+        this.database=properties.getProperty("app.api.database");
     }
 
     public void loadProperty(String path) throws IOException {
