@@ -2,7 +2,7 @@
 mysql 审核工具
 
 # 工作流程
-source -> input inception -> upstream -> redis -> output inception->downstream -> target
+source -> input inception -> upstream -> mysql -> output inception->downstream -> target
 
 
 ## TODO
