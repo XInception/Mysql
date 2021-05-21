@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
 @Slf4j
 class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
 
+    MysqlInception mysqlInception = new MysqlInception();
+
+
     private byte[] salt = new byte[20];
 
     KeyedObjectPool<Map<String, Object>, MysqlClient> upstreamPool = new GenericKeyedObjectPool<>(new MysqlUpstreamPool());
@@ -30,27 +33,28 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-//        log.info("客户端已经离线 返还 mysql 句柄");
-//        MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
-//        upstreamPool.returnObject(config, mysqlClient);
+        log.info("客户端已经离线 返还 mysql 句柄");
+        MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
+        upstreamPool.returnObject(config, mysqlClient);
     }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-//        log.info("客户端已经上线 获取mysql 句柄");
-//        config.put("downStream",ctx.channel());
-//        MysqlClient mysqlClient = upstreamPool.borrowObject(config);
-//        ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).set(mysqlClient);
+        log.info("客户端已经上线 获取mysql 句柄");
+        config.put("downStream",ctx.channel());
+        MysqlClient mysqlClient = upstreamPool.borrowObject(config);
+        ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).set(mysqlClient);
 
         log.info("返回服务器的版本和服务器的能力");
         final EnumSet<CapabilityFlags> capabilities = CapabilityFlags.getImplicitCapabilities();
         CapabilityFlags.setCapabilitiexinctr(ctx.channel(), capabilities);
         //TODO 使用远程服务器的 服务器版本
+
         ctx.writeAndFlush(Handshake.builder()
                 .serverVersion("0.0.1 XInception")
                 .connectionId(1)
                 .addAuthData(salt)
-                .authPluginName("mysql_native_password")
+                .authPluginName(Constants.MYSQL_NATIVE_PASSWORD)
                 .characterSet(MysqlCharacterSet.UTF8_BIN)
                 .addCapabilities(capabilities)
                 .build());
@@ -62,21 +66,36 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof HandshakeResponse) {
             System.out.println("处理握手");
             handleHandshakeResponse(ctx, (HandshakeResponse) msg);
-        } else if (msg instanceof QueryCommand) {
-
-            try {
-                handleQuery(ctx, (QueryCommand) msg);
-            }catch (Exception e){
-                System.out.println("处理查询发生异常");
-                e.printStackTrace();
+        } else{
+            if(msg instanceof MysqlClientPacket ){
+                System.out.println("转发消息给后端");
+                mysqlInception.checkRule(msg);
+                MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
+                mysqlClient.write((MysqlClientPacket)msg);
+            }else {
+                System.out.println("未知的消息");
             }
 
-        } else if (msg instanceof CommandPacket) {
-            System.out.println("处理命令");
-            handleCommond(ctx, (CommandPacket) msg);
-        } else {
-            System.out.println("收到消息" + msg);
         }
+
+//        if (msg instanceof HandshakeResponse) {
+//            System.out.println("处理握手");
+//            handleHandshakeResponse(ctx, (HandshakeResponse) msg);
+//        } else if (msg instanceof QueryCommand) {
+//
+//            try {
+//                handleQuery(ctx, (QueryCommand) msg);
+//            }catch (Exception e){
+//                System.out.println("处理查询发生异常");
+//                e.printStackTrace();
+//            }
+//
+//        } else if (msg instanceof CommandPacket) {
+//            System.out.println("处理命令");
+//            handleCommond(ctx, (CommandPacket) msg);
+//        } else {
+//            System.out.println("收到消息" + msg);
+//        }
     }
 
     @Override
@@ -131,8 +150,7 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
     private void handleQuery(ChannelHandlerContext ctx, QueryCommand query) {
         final String queryString = query.getQuery();
         log.info("收到请求: {} {}", query.getCommand().name(), queryString);
-        MysqlInception mysqlInception = new MysqlInception();
-        mysqlInception.checkRule(queryString);
+
         if (isServerSettingsQuery(queryString)) {
             sendSettingsResponse(ctx, query);
         } else if (isShowVar(queryString)){

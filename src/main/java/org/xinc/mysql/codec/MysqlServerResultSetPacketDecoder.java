@@ -23,6 +23,7 @@ public class MysqlServerResultSetPacketDecoder extends AbstractPacketDecoder imp
 	}
 
 	private State state = State.COLUMN_COUNT;
+
 	private List<ColumnDefinition> columnDefinitions;
 
 	public MysqlServerResultSetPacketDecoder() {
@@ -50,9 +51,9 @@ public class MysqlServerResultSetPacketDecoder extends AbstractPacketDecoder imp
 				handleRow(sequenceId, packet, out, capabilities, serverCharset);
 				break;
 			case COMPLETE:
-				throw new IllegalStateException("Received an unexpected packet after decoding a result set");
+				throw new IllegalStateException("Received an unexpected packet after decoding a result set " + state.ordinal());
 			case ERROR:
-				throw new IllegalStateException("Received a packet while in an error state");
+				throw new IllegalStateException("Received a packet while in an error state  "+ state.ordinal());
 		}
 	}
 

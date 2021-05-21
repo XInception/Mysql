@@ -27,7 +27,7 @@ public abstract class AbstractPacketDecoder extends ByteToMessageDecoder impleme
 			in.markReaderIndex();
 			final int packetSize = in.readUnsignedMediumLE();
 			if (packetSize > maxPacketSize) {
-				throw new TooLongFrameException("Received a packet of size " + packetSize + " but the maximum packet size is " + maxPacketSize);
+				throw new TooLongFrameException("接收到 字节:" + packetSize + " 超过最大字节: " + maxPacketSize);
 			}
 			final int sequenceId = in.readByte();
 			if (!in.isReadable(packetSize)) {

@@ -31,6 +31,8 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 		final Set<CapabilityFlags> capabilities = CapabilityFlags.getCapabilitiexinctr(channel);
 		final Charset serverCharset = MysqlCharacterSet.getServerCharsetAttr(channel).getCharset();
 
+		System.out.println("解析数据包");
+
 		final int header = packet.readByte() & 0xff;
 		switch (header) {
 			case RESPONSE_OK:
@@ -48,7 +50,7 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 				break;
 			case 1:
 				// TODO Decode auth more data packet: https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::AuthMoreData
-				throw new UnsupportedOperationException("Implement auth more data");
+				throw new UnsupportedOperationException("暂不支持");
 			default:
 				log.info("解析handshake");
 				decodeHandshake(packet, out, header);
@@ -62,7 +64,7 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 
 	private void decodeHandshake(ByteBuf packet, List<Object> out, int protocolVersion) {
 		if (protocolVersion < MINIMUM_SUPPORTED_PROTOCOL_VERSION) {
-			throw new CodecException("不支持的mysql版本");
+			throw new CodecException("不支持的mysql版本"+protocolVersion);
 		}
 
 		final Handshake.Builder builder = Handshake.builder();

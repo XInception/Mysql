@@ -25,6 +25,10 @@ public class MysqlServer {
 
     MysqlServerProperty property = null;
 
+
+    public MysqlServer() {
+    }
+
     public MysqlServer(MysqlServerProperty mysqlServerProperty) {
         property = mysqlServerProperty;
         start(property);
@@ -40,7 +44,7 @@ public class MysqlServer {
                         @Override
                         protected void initChannel(SocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
-//                            pipeline.addLast(new LoggingHandler());
+                            pipeline.addLast(new LoggingHandler());
                             pipeline.addLast(new MysqlServerPacketEncoder());
                             pipeline.addLast(new MysqlClientConnectionPacketDecoder());
                             pipeline.addLast(new Mysql57ServerHandler());
@@ -49,6 +53,10 @@ public class MysqlServer {
             f = b.bind(property.server, property.port);
             log.info("mysql proxy server 启动完成 {} {} ", property.server, property.port);
             f.channel().closeFuture().sync();
+            f.addListener(f->{
+                log.info("启动完成消息");
+               System.out.println(f);
+            });
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

@@ -11,6 +11,8 @@ class MysqlClientTest {
     @BeforeAll
     static void beforeAll() throws IOException {
         mysqlClient=new MysqlClient(new MysqlClientProperty ("/application-client.properties"),null);
+
+
     }
 
 }
