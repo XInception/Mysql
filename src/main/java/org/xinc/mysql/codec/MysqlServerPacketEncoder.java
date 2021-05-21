@@ -40,6 +40,7 @@ public class MysqlServerPacketEncoder extends AbstractPacketEncoder<MysqlServerP
 		} else if (packet instanceof EofResponse) {
 			encodeEofResponse(capabilities, (EofResponse) packet, buf);
 		} else if (packet instanceof Handshake) {
+			System.out.println("编码捂手数据包");
 			encodeHandshake((Handshake)packet, buf);
 		} else if (packet instanceof OkResponse) {
 			System.out.print("编码"+serverCharset);
@@ -47,7 +48,7 @@ public class MysqlServerPacketEncoder extends AbstractPacketEncoder<MysqlServerP
 		} else if (packet instanceof ResultsetRow) {
 			encodeResultsetRow(serverCharset, (ResultsetRow) packet, buf);
 		} else {
-			throw new IllegalStateException("Unknown packet type: " + packet.getClass());
+			throw new IllegalStateException("未知 包类型: " + packet.getClass());
 		}
 	}
 
@@ -105,6 +106,8 @@ public class MysqlServerPacketEncoder extends AbstractPacketEncoder<MysqlServerP
 			}
 		}
 		if (handshake.getCapabilities().contains(CapabilityFlags.CLIENT_PLUGIN_AUTH)) {
+
+			System.out.println(handshake.getAuthPluginName());
 			ByteBufUtil.writeUtf8(buf, handshake.getAuthPluginName());
 			buf.writeByte(Constants.NUL_BYTE);
 		}

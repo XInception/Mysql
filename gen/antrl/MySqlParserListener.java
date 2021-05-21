@@ -1,5 +1,5 @@
-// Generated from D:/private/xinc/garmmer/mysql\MySqlParser.g4 by ANTLR 4.9.1
-package org.xinc.mysql.parser;
+// Generated from D:/private/sat/mysql_57/src/main/java/antrl\MySqlParser.g4 by ANTLR 4.9.1
+package antrl;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
 /**

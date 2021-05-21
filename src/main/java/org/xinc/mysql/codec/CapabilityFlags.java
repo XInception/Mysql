@@ -67,8 +67,11 @@ public enum CapabilityFlags {
 		return EnumSet.of(
 				CapabilityFlags.CLIENT_LONG_PASSWORD,
 				CapabilityFlags.CLIENT_PROTOCOL_41,
+				CapabilityFlags.CLIENT_PLUGIN_AUTH,
+//				CapabilityFlags.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA,
 				CapabilityFlags.CLIENT_TRANSACTIONS,
 				CapabilityFlags.CLIENT_SECURE_CONNECTION,
+				CapabilityFlags.CLIENT_CONNECT_WITH_DB,
 				CapabilityFlags.CLIENT_SESSION_TRACK
 		);
 

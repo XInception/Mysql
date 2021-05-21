@@ -40,7 +40,7 @@ public class MysqlServer {
                         @Override
                         protected void initChannel(SocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast(new LoggingHandler());
+//                            pipeline.addLast(new LoggingHandler());
                             pipeline.addLast(new MysqlServerPacketEncoder());
                             pipeline.addLast(new MysqlClientConnectionPacketDecoder());
                             pipeline.addLast(new Mysql57ServerHandler());

@@ -1,5 +1,5 @@
-// Generated from D:/private/xinc/garmmer/mysql\MySqlLexer.g4 by ANTLR 4.9.1
-package org.xinc.mysql.lexer;
+// Generated from D:/private/sat/mysql_57/src/main/java/antrl\MySqlLexer.g4 by ANTLR 4.9.1
+package antrl;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

@@ -22,7 +22,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- *
+ * 定义列
  */
 public class ColumnDefinition extends AbstractMySqlPacket implements MysqlServerPacket {
 	private final String catalog;

@@ -48,7 +48,7 @@ public class Handshake extends DefaultByteBufHolder implements MysqlServerPacket
 		}
 		protocolVersion = builder.protocolVersion;
 		if (builder.serverVersion == null) {
-			throw new NullPointerException("serverVersion can not be null");
+			throw new NullPointerException("服务器版本不能为空");
 		}
 		serverVersion = AsciiString.of(builder.serverVersion);
 		connectionId = builder.connectionId;

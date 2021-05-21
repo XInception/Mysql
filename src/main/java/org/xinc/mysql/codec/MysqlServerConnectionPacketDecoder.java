@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.CodecException;
 import io.netty.util.CharsetUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Set;
 /**
  *
  */
+@Slf4j
 public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder implements MysqlServerPacketDecoder {
 
 	public MysqlServerConnectionPacketDecoder() {
@@ -48,6 +50,7 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 				// TODO Decode auth more data packet: https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::AuthMoreData
 				throw new UnsupportedOperationException("Implement auth more data");
 			default:
+				log.info("解析handshake");
 				decodeHandshake(packet, out, header);
 		}
 	}
@@ -59,7 +62,7 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 
 	private void decodeHandshake(ByteBuf packet, List<Object> out, int protocolVersion) {
 		if (protocolVersion < MINIMUM_SUPPORTED_PROTOCOL_VERSION) {
-			throw new CodecException("Unsupported version of MySQL");
+			throw new CodecException("不支持的mysql版本");
 		}
 
 		final Handshake.Builder builder = Handshake.builder();
@@ -68,7 +71,7 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 				.serverVersion(CodecUtils.readNullTerminatedString(packet))
 				.connectionId(packet.readIntLE())
 				.addAuthData(packet, Constants.AUTH_PLUGIN_DATA_PART1_LEN);
-
+		System.out.println("授权");
 		packet.skipBytes(1); // Skip auth plugin data terminator
 		builder.addCapabilities(CodecUtils.toEnumSet(CapabilityFlags.class, packet.readUnsignedShortLE()));
 		if (packet.isReadable()) {
@@ -85,6 +88,7 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 						Math.max(Constants.AUTH_PLUGIN_DATA_PART2_MIN_LEN,
 								authDataLen - Constants.AUTH_PLUGIN_DATA_PART1_LEN);
 				builder.addAuthData(packet, readableBytes);
+				System.out.println("开始客户端插件认证");
 				if (builder.hasCapability(CapabilityFlags.CLIENT_PLUGIN_AUTH) && packet.isReadable()) {
 					int len = packet.readableBytes();
 					if (packet.getByte(packet.readerIndex() + len - 1) == 0) {

@@ -50,6 +50,7 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
                 .serverVersion("0.0.1 XInception")
                 .connectionId(1)
                 .addAuthData(salt)
+                .authPluginName("mysql_native_password")
                 .characterSet(MysqlCharacterSet.UTF8_BIN)
                 .addCapabilities(capabilities)
                 .build());
@@ -92,7 +93,7 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(OkResponse.builder()
                     .sequenceId(cmd.getSequenceId() + 1)
                     .info("ok")
-                    .sessionStateChanges("ok")
+                    .sessionStateChanges("")
                     .addStatusFlags(
                             ServerStatusFlag.AUTO_COMMIT,
                             ServerStatusFlag.SESSION_STATE_CHANGED)
@@ -101,7 +102,7 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(OkResponse.builder()
                     .sequenceId(cmd.getSequenceId() + 1)
                     .info("ok")
-                    .sessionStateChanges("ok")
+                    .sessionStateChanges("")
                     .addStatusFlags(
                             ServerStatusFlag.AUTO_COMMIT).build());
         }
@@ -134,8 +135,9 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
         mysqlInception.checkRule(queryString);
         if (isServerSettingsQuery(queryString)) {
             sendSettingsResponse(ctx, query);
-        } else {
+        } else if (isShowVar(queryString)){
             // TODO 处理请求
+            log.info("查询变量");
             int sequenceId = query.getSequenceId();
             ctx.write(new ColumnCount(++sequenceId, 1));
             ctx.write(ColumnDefinition.builder()
@@ -144,7 +146,20 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
                     .schema("schema")
                     .table("table")
                     .orgTable("org_table")
-                    .name("name")
+                    .name("Variable_name")
+                    .orgName("org_name")
+                    .columnLength(10)
+                    .type(ColumnType.MYSQL_TYPE_DOUBLE)
+                    .addFlags(ColumnFlag.NUM)
+                    .decimals(5)
+                    .build());
+            ctx.write(ColumnDefinition.builder()
+                    .sequenceId(++sequenceId)
+                    .catalog("catalog")
+                    .schema("schema")
+                    .table("table")
+                    .orgTable("org_table")
+                    .name("Value")
                     .orgName("org_name")
                     .columnLength(10)
                     .type(ColumnType.MYSQL_TYPE_DOUBLE)
@@ -152,8 +167,28 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
                     .decimals(5)
                     .build());
             ctx.write(new EofResponse(++sequenceId, 0));
-            ctx.write(new ResultsetRow(++sequenceId, "database01"));
-            ctx.write(new ResultsetRow(++sequenceId, "database02"));
+            ctx.write(new ResultsetRow(++sequenceId, "test","value"));
+            ctx.writeAndFlush(new EofResponse(++sequenceId, 0));
+        } {
+            log.info("默认查询");
+            // TODO 处理请求  select version() as v;
+            int sequenceId = query.getSequenceId();
+            ctx.write(new ColumnCount(++sequenceId, 1));
+            ctx.write(ColumnDefinition.builder()
+                    .sequenceId(++sequenceId)
+                    .catalog("catalog")
+                    .schema("schema")
+                    .table("table")
+                    .orgTable("org_table")
+                    .name("v")
+                    .orgName("org_name")
+                    .columnLength(10)
+                    .type(ColumnType.MYSQL_TYPE_VARCHAR)
+//                    .addFlags(ColumnFlag.)
+                    .decimals(5)
+                    .build());
+            ctx.write(new EofResponse(++sequenceId, 0));
+            ctx.write(new ResultsetRow(++sequenceId, "0.0.1"));
             ctx.writeAndFlush(new EofResponse(++sequenceId, 0));
         }
     }
@@ -161,6 +196,11 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
     private boolean isServerSettingsQuery(String query) {
         query = query.toLowerCase();
         return query.contains("select") && !query.contains("from") && query.contains("@@");
+    }
+
+    private boolean isShowVar(String query) {
+        query = query.toUpperCase();
+        return query.contains("SHOW VARIABLES");
     }
 
     private static Pattern SETTINGS_PATTERN = Pattern.compile("@@(\\w+)\\sAS\\s(\\w+)");
