@@ -10,8 +10,11 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.xinc.mysql.Feature;
 import org.xinc.mysql.codec.MysqlClientConnectionPacketDecoder;
 import org.xinc.mysql.codec.MysqlServerPacketEncoder;
+
+import java.util.Arrays;
 
 
 @Slf4j
@@ -24,7 +27,6 @@ public class MysqlServer {
     ChannelFuture f = null;
 
     MysqlServerProperty property = null;
-
 
     public MysqlServer() {
     }
@@ -45,17 +47,17 @@ public class MysqlServer {
                         protected void initChannel(SocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new LoggingHandler());
-                            pipeline.addLast(new MysqlServerPacketEncoder());
-                            pipeline.addLast(new MysqlClientConnectionPacketDecoder());
-                            pipeline.addLast(new Mysql57ServerHandler());
+                            pipeline.addLast(new Mysql57ServerForwardHandler(property));
                         }
                     });
             f = b.bind(property.server, property.port);
-            log.info("mysql proxy server 启动完成 {} {} ", property.server, property.port);
+            log.info("mysql proxy server 启动完成 {} {} 版本:{} ", property.server, property.port,property.getProperty("version"));
+            Arrays.stream(Feature.values()).forEach(f->{
+                log.info("项目: {} 描述: {} 值: {} 默认: {}",f.name(),f.getDesc(), property.getProperty(Feature.RECORD_REQUEST_RESPONSE_LOG.name(),Feature.RECORD_REQUEST_RESPONSE_LOG.getDefaultVal()),Feature.RECORD_REQUEST_RESPONSE_LOG.getDefaultVal());
+            });
             f.channel().closeFuture().sync();
-            f.addListener(f->{
-                log.info("启动完成消息");
-               System.out.println(f);
+            f.addListener(f -> {
+                System.out.println(f);
             });
         } catch (Exception e) {
             e.printStackTrace();
