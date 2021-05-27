@@ -48,7 +48,6 @@ public class MysqlClientHandler extends ChannelInboundHandlerAdapter {
             System.out.println("转发数据包");
             downStreamChanel.writeAndFlush(msg);
         }
-
     }
 
     @Override

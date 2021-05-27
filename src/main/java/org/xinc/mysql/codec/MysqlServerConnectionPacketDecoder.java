@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.CodecException;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,12 +18,16 @@ import java.util.Set;
 @Slf4j
 public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder implements MysqlServerPacketDecoder {
 
+
+
 	public MysqlServerConnectionPacketDecoder() {
 		this(DEFAULT_MAX_PACKET_SIZE);
+
 	}
 
 	public MysqlServerConnectionPacketDecoder(int maxPacketSize) {
 		super(maxPacketSize);
+;
 	}
 
 	@Override
@@ -31,11 +36,12 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 		final Set<CapabilityFlags> capabilities = CapabilityFlags.getCapabilitiexinctr(channel);
 		final Charset serverCharset = MysqlCharacterSet.getServerCharsetAttr(channel).getCharset();
 
-		System.out.println("解析数据包");
-
+		ctx.channel().attr(AttributeKey.valueOf("sequenceId")).set(sequenceId);
 		final int header = packet.readByte() & 0xff;
+		System.out.println("解析数据包 header "+header+ " sequenceId"+sequenceId);
 		switch (header) {
 			case RESPONSE_OK:
+				System.out.println("返回OK");
 				out.add(decodeOkResponse(sequenceId, packet, capabilities, serverCharset));
 				break;
 			case RESPONSE_EOF:
@@ -46,9 +52,11 @@ public class MysqlServerConnectionPacketDecoder extends AbstractPacketDecoder im
 				}
 				break;
 			case RESPONSE_ERROR:
+				System.out.println("返回错误");
 				out.add(decodeErrorResponse(sequenceId, packet, serverCharset));
 				break;
 			case 1:
+				System.out.println(header);
 				// TODO Decode auth more data packet: https://dev.mysql.com/doc/internals/en/connection-phase-packets.html#packet-Protocol::AuthMoreData
 				throw new UnsupportedOperationException("暂不支持");
 			default:

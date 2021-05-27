@@ -23,6 +23,7 @@ public class MysqlClientConnectionPacketDecoder extends AbstractPacketDecoder im
 
 	@Override
 	protected void decodePacket(ChannelHandlerContext ctx, int sequenceId, ByteBuf packet, List<Object> out) {
+		System.out.println("mysql代理 协议序号 ↑"+sequenceId);
 		final EnumSet<CapabilityFlags> clientCapabilities = CodecUtils.readIntEnumSet(packet, CapabilityFlags.class);
 
 		if (!clientCapabilities.contains(CapabilityFlags.CLIENT_PROTOCOL_41)) {

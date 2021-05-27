@@ -65,14 +65,23 @@ public enum CapabilityFlags {
 
 	public static EnumSet<CapabilityFlags> getImplicitCapabilities() {
 		return EnumSet.of(
+				CapabilityFlags.CLIENT_PS_MULTI_RESULTS,
+				CapabilityFlags.CLIENT_MULTI_RESULTS,
+				CapabilityFlags.CLIENT_MULTI_STATEMENTS,
 				CapabilityFlags.CLIENT_LONG_PASSWORD,
 				CapabilityFlags.CLIENT_PROTOCOL_41,
 				CapabilityFlags.CLIENT_PLUGIN_AUTH,
-//				CapabilityFlags.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA,
+				CapabilityFlags.CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA,
+				CapabilityFlags.CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS,
+				CapabilityFlags.CLIENT_DEPRECATE_EOF,
 				CapabilityFlags.CLIENT_TRANSACTIONS,
 				CapabilityFlags.CLIENT_SECURE_CONNECTION,
 				CapabilityFlags.CLIENT_CONNECT_WITH_DB,
-				CapabilityFlags.CLIENT_SESSION_TRACK
+				CapabilityFlags.CLIENT_CONNECT_ATTRS,
+				CapabilityFlags.CLIENT_SESSION_TRACK,
+				UNKNOWN_25,
+				UNKNOWN_30,
+				UNKNOWN_31
 		);
 
 	}

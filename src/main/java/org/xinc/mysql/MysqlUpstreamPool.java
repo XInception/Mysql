@@ -16,7 +16,9 @@ public class MysqlUpstreamPool extends BaseKeyedPooledObjectFactory<Map<String, 
     @Override
     public MysqlClient create(Map<String, Object> stringObjectMap) throws Exception {
         log.info("获取客户端");
-        return new MysqlClient(new MysqlClientProperty("/application-client.properties"),(Channel) stringObjectMap.get("downStream"));
+        MysqlClient client=new MysqlClient(new MysqlClientProperty("/application-client.properties"),(Channel) stringObjectMap.get("downStream"));
+        client.connect();
+        return client;
     }
 
     @Override

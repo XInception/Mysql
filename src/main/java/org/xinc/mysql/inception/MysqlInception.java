@@ -4,10 +4,12 @@ package org.xinc.mysql.inception;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CodePointCharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import org.xinc.function.Inception;
+import org.xinc.mysql.CaseChangingCharStream;
 import org.xinc.mysql.codec.CommandPacket;
 import org.xinc.mysql.codec.QueryCommand;
 import org.xinc.mysql.gen.MySqlLexer;
@@ -22,12 +24,14 @@ public class MysqlInception implements Inception {
         if(sql instanceof QueryCommand){
             queryString= ((QueryCommand)sql).getQuery();
         } else if(sql instanceof CommandPacket){
-            queryString= ((QueryCommand)sql).getQuery();
+            System.out.println("命令包:"+((CommandPacket)sql).getCommand().name());
+            return;
         }else {
             System.out.println("未知的数据包");
         }
         log.info("check sql {}",queryString);
-        CharStream source = CharStreams.fromString(queryString.toUpperCase());
+        CodePointCharStream cp =CharStreams.fromString(queryString);
+        CharStream source =new CaseChangingCharStream(cp,true);
         MySqlLexer lexer = new MySqlLexer(source);
         MySqlParser parser = new MySqlParser(new CommonTokenStream(lexer));
         parser.setBuildParseTree(true);

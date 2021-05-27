@@ -20,4 +20,5 @@ public interface MysqlPacket {
 
 	int getSequenceId();
 
+	void setSequenceId(int sequenceId);
 }

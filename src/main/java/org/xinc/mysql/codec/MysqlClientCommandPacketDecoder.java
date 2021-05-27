@@ -27,7 +27,7 @@ public class MysqlClientCommandPacketDecoder extends AbstractPacketDecoder imple
 		final byte commandCode = packet.readByte();
 		final Optional<Command> command = Command.findByCommandCode(commandCode);
 		if (!command.isPresent()) {
-			throw new DecoderException("Unknown command " + commandCode);
+			throw new DecoderException("未知命令 " + commandCode);
 		}
 		switch (command.get()) {
 			case COM_QUERY:

@@ -21,7 +21,7 @@ package org.xinc.mysql.codec;
  */
 abstract class AbstractMySqlPacket implements MysqlPacket {
 
-	private final int sequenceId;
+	private int sequenceId;
 
 	public AbstractMySqlPacket(int sequenceId) {
 		this.sequenceId = sequenceId;
@@ -31,4 +31,10 @@ abstract class AbstractMySqlPacket implements MysqlPacket {
 	public int getSequenceId() {
 		return this.sequenceId;
 	}
+
+	@Override
+	public void setSequenceId(int sequenceId){
+		this.sequenceId=sequenceId;
+	};
+
 }

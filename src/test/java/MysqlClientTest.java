@@ -92,7 +92,7 @@ class MysqlClientTest {
                 public void initChannel(SocketChannel ch) throws Exception {
                     CapabilityFlags.setCapabilitiexinctr(ch, CLIENT_CAPABILITIES);
                     ch.pipeline().addLast(new LoggingHandler());
-                    ch.pipeline().addLast(new MysqlServerConnectionPacketDecoder());
+                    ch.pipeline().addLast(new MysqlServerConnectionPacketDecoder(0));
                     ch.pipeline().addLast(new MysqlClientPacketEncoder());
                 }
             });

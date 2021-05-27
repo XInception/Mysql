@@ -33,6 +33,7 @@ public class MysqlServerPacketEncoder extends AbstractPacketEncoder<MysqlServerP
 	protected void encodePacket(ChannelHandlerContext ctx, MysqlServerPacket packet, ByteBuf buf) {
 		final EnumSet<CapabilityFlags> capabilities = CapabilityFlags.getCapabilitiexinctr(ctx.channel());
 		final Charset serverCharset = MysqlCharacterSet.getServerCharsetAttr(ctx.channel()).getCharset();
+		System.out.println("mysql代理 协议序号↓"+packet.getSequenceId());
 		if (packet instanceof ColumnCount) {
 			encodeColumnCount((ColumnCount) packet, buf);
 		} else if (packet instanceof ColumnDefinition) {

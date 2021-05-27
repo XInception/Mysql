@@ -19,7 +19,7 @@ class MysqlClientConnectTest{
         Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false", "root", "123456Zz..*");
 
         //4、定义sql语句
-        String sql = "select version() as v;";
+        String sql = "select version() as v";
 
         //5、获取执行sql语句的对象
         Statement stat = con.createStatement();
@@ -28,7 +28,7 @@ class MysqlClientConnectTest{
         ResultSet res = stat.executeQuery(sql);
 
         while (res.next()){
-           var v=res.getString("v");
+           var v=res.getObject(1);
            System.out.println(v);
         }
         //7、处理结果

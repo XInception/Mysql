@@ -45,11 +45,11 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
         MysqlClient mysqlClient = upstreamPool.borrowObject(config);
         ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).set(mysqlClient);
 
-        log.info("返回服务器的版本和服务器的能力");
+
         final EnumSet<CapabilityFlags> capabilities = CapabilityFlags.getImplicitCapabilities();
         CapabilityFlags.setCapabilitiexinctr(ctx.channel(), capabilities);
         //TODO 使用远程服务器的 服务器版本
-
+        log.info("返回服务器的版本和服务器的能力");
         ctx.writeAndFlush(Handshake.builder()
                 .serverVersion("0.0.1 XInception")
                 .connectionId(1)
@@ -62,16 +62,18 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-
         if (msg instanceof HandshakeResponse) {
             System.out.println("处理握手");
             handleHandshakeResponse(ctx, (HandshakeResponse) msg);
         } else{
             if(msg instanceof MysqlClientPacket ){
-                System.out.println("转发消息给后端");
+                System.out.println("转发消息给后端"+((MysqlClientPacket) msg).getSequenceId());
                 mysqlInception.checkRule(msg);
                 MysqlClient mysqlClient = (MysqlClient) ctx.channel().attr(AttributeKey.valueOf("mysql_connect")).get();
-                mysqlClient.write((MysqlClientPacket)msg);
+                mysqlClient.connect().thenAccept(m->{
+                    m.write((MysqlClientPacket)msg);
+                });
+//                mysqlClient.write((MysqlClientPacket)msg);
             }else {
                 System.out.println("未知的消息");
             }
@@ -142,7 +144,7 @@ class Mysql57ServerHandler extends ChannelInboundHandlerAdapter {
                         ServerStatusFlag.AUTO_COMMIT,
                         ServerStatusFlag.SESSION_STATE_CHANGED
                 )
-                .sessionStateChanges("ok111111111111111")
+                .sessionStateChanges("ok")
                 .info("ok")
                 .build());
     }

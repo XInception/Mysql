@@ -32,6 +32,8 @@ public abstract class AbstractPacketEncoder<T extends MysqlPacket> extends Messa
 		encodePacket(ctx, packet, buf);
 		final int len = buf.writerIndex() - writerIdx - 4;
 
+
+//		buf.setMedium(writerIdx, len)
 		buf.setMediumLE(writerIdx, len)
 				.setByte(writerIdx + 3, packet.getSequenceId());
 	}

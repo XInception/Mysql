@@ -7,6 +7,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.xinc.mysql.codec.*;
@@ -21,6 +22,7 @@ public class MysqlClient {
     public boolean isConnect() {
         return isConnect;
     }
+
 
     protected static final EnumSet<CapabilityFlags> CLIENT_CAPABILITIES = CapabilityFlags.getImplicitCapabilities();
 
@@ -78,6 +80,7 @@ public class MysqlClient {
                 .username(property.user)
                 .addAuthData(MysqlNativePasswordUtil.hashPassword(property.password, ((Handshake) msg).getAuthPluginData()))
                 .database(property.database)
+                .addAttribute("client_name","xince")
                 .authPluginName(Constants.MYSQL_NATIVE_PASSWORD)
                 .build();
 
@@ -86,6 +89,8 @@ public class MysqlClient {
         try {
             msg = blockingQueue.poll(5, TimeUnit.SECONDS);
             System.out.println("认证成功");
+            System.out.println("修改解码包");
+            c.pipeline().replace(MysqlServerPacketDecoder.class, "decoder", new MysqlServerResultSetPacketDecoder());
             this.isConnect=true;
         } catch (InterruptedException e) {
             System.out.println("等到OK 回复异常");
@@ -120,6 +125,7 @@ public class MysqlClient {
                         new ChannelInboundHandlerAdapter() {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                        System.out.println("消息 id"+((MysqlPacket)msg).getSequenceId());
                         System.out.println(msg);
 
                         if (msg instanceof Handshake) {
@@ -142,7 +148,7 @@ public class MysqlClient {
 //
 
                         if (downstream != null) {
-                            System.out.println("转发数据包给前端");
+                            System.out.println("下游写入数据");
                             downstream.write(msg);
                         }
                     }
@@ -161,12 +167,16 @@ public class MysqlClient {
     }
 
     CompletableFuture<MysqlClient> query(String query) {
-        c.pipeline().replace(MysqlServerPacketDecoder.class, "decoder", new MysqlServerResultSetPacketDecoder());
+//        c.pipeline().replace(MysqlServerPacketDecoder.class, "decoder", new MysqlServerResultSetPacketDecoder());
         return CompletableFuture.supplyAsync(() -> write(new QueryCommand(0, query)));
 //        return write(new QueryCommand(0, query));
     }
 
     public MysqlClient write(MysqlClientPacket packet) {
+
+        Integer sid= (int)c.attr(AttributeKey.valueOf("sequenceId")).get();
+        System.out.println("重写消息id"+sid);
+//        ((MysqlClientPacket)packet).setSequenceId(sid+1);
         c.writeAndFlush(packet).addListener(ChannelFutureListener.FIRE_EXCEPTION_ON_FAILURE);
         Object ret = null;
         try {
@@ -178,4 +188,6 @@ public class MysqlClient {
         System.out.println(ret);
          return  this;
     }
+
+
 }

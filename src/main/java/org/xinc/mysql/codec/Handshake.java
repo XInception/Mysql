@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.DefaultByteBufHolder;
 import io.netty.util.AsciiString;
 
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -100,10 +101,20 @@ public class Handshake extends DefaultByteBufHolder implements MysqlServerPacket
 	}
 
 	@Override
+	public void setSequenceId(int sequenceId) {
+	}
+
+	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		if (!super.equals(o)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		if (!super.equals(o)) {
+			return false;
+		}
 		final Handshake handshake = (Handshake) o;
 		return protocolVersion == handshake.protocolVersion &&
 				connectionId == handshake.connectionId &&

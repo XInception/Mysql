@@ -100,6 +100,11 @@ public class HandshakeResponse extends DefaultByteBufHolder implements MysqlClie
 		return 1;
 	}
 
+	@Override
+	public void setSequenceId(int sequenceId) {
+
+	}
+
 	public static class Builder extends AbstractAuthPluginDataBuilder<Builder> {
 		private int maxPacketSize = Constants.DEFAULT_MAX_PACKET_SIZE;
 		private MysqlCharacterSet characterSet = MysqlCharacterSet.DEFAULT;
