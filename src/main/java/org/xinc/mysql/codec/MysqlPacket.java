@@ -16,9 +16,26 @@
 
 package org.xinc.mysql.codec;
 
+import io.netty.buffer.ByteBuf;
+
 public interface MysqlPacket {
 
-	int getSequenceId();
+    int getSequenceId();
 
-	void setSequenceId(int sequenceId);
+    void setSequenceId(int sequenceId);
+
+    /**
+     * @return 转换为 bytebuf
+     */
+    default ByteBuf toByteBuf() throws Exception {
+        throw new Exception("未实现");
+    };
+
+    /**
+     * @param byteBuf bytebuf
+     * @return 转换为 MysqlPacket 实例
+     */
+    default MysqlPacket fromByteBuffer(ByteBuf byteBuf) throws Exception{
+        throw new Exception("未实现");
+    };
 }

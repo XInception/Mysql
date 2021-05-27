@@ -45,17 +45,14 @@ public class MysqlServer {
                         protected void initChannel(SocketChannel ch) {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new LoggingHandler());
-                            pipeline.addLast(new MysqlServerPacketEncoder());
-                            pipeline.addLast(new MysqlClientConnectionPacketDecoder());
-                            pipeline.addLast(new Mysql57ServerHandler());
+                            pipeline.addLast(new Mysql57ServerForwardHandler());
                         }
                     });
             f = b.bind(property.server, property.port);
             log.info("mysql proxy server 启动完成 {} {} ", property.server, property.port);
             f.channel().closeFuture().sync();
-            f.addListener(f->{
-                log.info("启动完成消息");
-               System.out.println(f);
+            f.addListener(f -> {
+                System.out.println(f);
             });
         } catch (Exception e) {
             e.printStackTrace();
