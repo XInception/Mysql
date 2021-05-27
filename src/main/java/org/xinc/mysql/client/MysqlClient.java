@@ -59,7 +59,7 @@ public class MysqlClient {
 
         cf.addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
-                System.out.println("链接成功");
+                System.out.println("TCP IP 链接成功");
                 upstream = cf.channel();
             }
         });

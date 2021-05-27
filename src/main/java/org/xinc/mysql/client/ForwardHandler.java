@@ -16,18 +16,15 @@ public class ForwardHandler extends ChannelInboundHandlerAdapter {
         this.property = property;
     }
 
-
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if(downStreamChanel!=null){
-            System.out.println("转发数据包");
-            downStreamChanel.writeAndFlush(msg);
-        }
+        log.info("转发数据包");
+        downStreamChanel.writeAndFlush(msg);
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        System.err.print("发生异常: ");
+        log.info("发生异常: ");
         cause.printStackTrace(System.err);
         ctx.close();
     }

@@ -7,7 +7,7 @@ import java.util.Properties;
 /**
  * @author Admin
  */
-public class MysqlServerProperty {
+public class MysqlServerProperty extends Properties {
 
     String server;
     Integer port;
@@ -17,10 +17,9 @@ public class MysqlServerProperty {
     }
 
     public void loadProperty(InputStream stream) throws IOException {
-        Properties properties = new Properties();
-        properties.load(stream);
-        this.server=properties.getProperty("app.api.server");
-        this.port=Integer.parseInt(properties.getProperty("app.api.port"));
+        load(stream);
+        this.server=this.getProperty("app.api.server");
+        this.port=Integer.parseInt(this.getProperty("app.api.port"));
     }
 
     public void loadProperty(String path) throws IOException {

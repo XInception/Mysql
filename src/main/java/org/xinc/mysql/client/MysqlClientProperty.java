@@ -7,7 +7,7 @@ import java.util.Properties;
 /**
  * @author Admin
  */
-public class MysqlClientProperty {
+public class MysqlClientProperty extends Properties {
 
     String server;
     Integer port;
